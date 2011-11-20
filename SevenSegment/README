@@ -1,0 +1,17 @@
+The Nexys3 board contains a four-digit seven segment display.
+
+The SevenSegmentUpdater.vhd file contains the code to set all digits appropriately.
+It takes a 32-bit vector as input - the bits 31 downto 24 represents the leftmost
+digit of the display. Please refer to the Nexys3 reference manual to see which segments
+the bits activate. A segment is active if the corresponding bit is low!
+
+The order of the bits is:
+
+31 30 29 28 27 26 25 24
+DP G  F    E   D   C   B   A
+
+The seven segment display is updated with 100 Hz frequency.
+
+The FourDigitCounter.vhd file provides an example of how to use the SevenSegmentUpdater
+entity: It counts from 0000 to 9999 with two counts a second.
+After the counter has reached 9999, it is started again.
