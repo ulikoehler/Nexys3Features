@@ -24,7 +24,7 @@ entity UARTTransmitter is
 		 TX_FINISHED : out STD_LOGIC;
 		 UART_OUT : out STD_LOGIC
 		 );
-end UART;
+end UARTTransmitter;
 
 architecture Behavioral of UARTTransmitter is
 signal uartClock : std_logic;
