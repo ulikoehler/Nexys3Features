@@ -3,7 +3,7 @@ use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.all;
  
 entity UARTTransmitter_TB is
-end UARTTransmitter_TB; 
+end entity; 
  
 architecture TB of UARTTransmitter_TB is
     signal data : std_logic_vector(7 downto 0) := "01010101";
@@ -34,8 +34,12 @@ begin
  
 	trigger: process
 	begin
-		txTrigger <= '1' after 50 us;
+		txTrigger <= '1';
 		wait until txFinished = '0';
+		wait for 100 us;
+		txTrigger <= '0';
+		data <= "00000001";
+		txTrigger <= '1' after 1 ms
 		wait;
 	end process;
 end;

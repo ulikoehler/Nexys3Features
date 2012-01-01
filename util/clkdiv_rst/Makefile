@@ -3,8 +3,8 @@ FILES = src/*
 VHDLEX = .vhd
  
 # testbench
-TESTBENCH=clkdiv_rst
-TESTBENCH_LC=clkdiv_rst
+TESTBENCH=clkdiv_rst_tb
+TESTBENCH_LC=clkdiv_rst_tb
 TESTBENCHPATH = testbench/${TESTBENCH}$(VHDLEX)
  
 #GHDL CONFIG
@@ -14,7 +14,7 @@ GHDL_FLAGS  = --ieee=synopsys --warn-no-vital-generic
 SIMDIR = simulation
 # Simulation break condition
 #GHDL_SIM_OPT = --assert-level=error
-GHDL_SIM_OPT = --stop-time=10ms
+GHDL_SIM_OPT = --stop-time=100us
  
 WAVEFORM_VIEWER = gtkwave
  
@@ -45,3 +45,4 @@ view :
 clean :
 	$(GHDL_CMD) --clean --workdir=simulation
 	@rm src/*~
+	@rm testbench/*~
