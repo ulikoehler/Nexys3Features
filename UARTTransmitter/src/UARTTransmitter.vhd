@@ -21,28 +21,36 @@ entity UARTTransmitter is
  port (CLK : in  STD_LOGIC;
 		 DATA_IN : in STD_LOGIC_VECTOR (7 downto 0);
 		 TX_TRIGGER : in STD_LOGIC;
-		 TX_FINISHED : out STD_LOGIC;
-		 UART_OUT : out STD_LOGIC
+		 TX_FINISHED : out STD_LOGIC := '1';
+		 UART_OUT : out STD_LOGIC := '1'
 		 );
 end UARTTransmitter;
 
 architecture Behavioral of UARTTransmitter is
+component clkdiv
+    generic (DIVRATIO : integer := 4);  -- Division ratio
+    port (
+        clkin     : in std_logic;         -- Input clock
+        clkout  : out std_logic         -- Output clock
+    );
+end component;
+
 signal uartClock : std_logic;
 
 -- Set by the transmitter process:
-signal startTransmission : std_logic;
-signal transmissionFinished : std_logic;
-signal transmissionInProgress : std_logic;
+signal startTransmission : std_logic := '0';
+signal transmissionFinished : std_logic := '1';
+signal transmissionInProgress : std_logic := '0';
 
 begin
 -- Update the seven segment content with 2 Hz frequency
-uartClockGenerator : entity work.clkdiv generic map (DIVRATIO => CLOCKDIVRATIO)
+uartClockGenerator : clkdiv generic map (DIVRATIO => CLOCKDIVRATIO)
 	port map ( clkin => clk,
 				  clkout => uartClock);
 -- Starts the transmission when the data is changed
 dataListener : process(clk)
 begin
-	if rising_edge(TX_TRIGGER) then
+	if TX_TRIGGER = '1' and transmissionFinished = '1' then
 		TX_FINISHED <= '0';
 		startTransmission <= '1';
 	end if;
@@ -72,7 +80,7 @@ begin
 		if transmissionInProgress = '1' then
 			UART_OUT <= DATA_IN(bitCounter);
 			-- Check for counter overflow
-			if bitCounter = 8 then
+			if bitCounter = 7 then
 				UART_OUT <= '1';
 				transmissionFinished <= '1';
 				transmissionInProgress <= '0';

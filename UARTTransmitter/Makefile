@@ -4,6 +4,7 @@ VHDLEX = .vhd
  
 # testbench
 TESTBENCH=UARTTransmitter_TB
+TESTBENCH_LC=uarttransmitter_tb
 TESTBENCHPATH = testbench/${TESTBENCH}$(VHDLEX)
  
 #GHDL CONFIG
@@ -13,7 +14,7 @@ GHDL_FLAGS  = --ieee=synopsys --warn-no-vital-generic
 SIMDIR = simulation
 # Simulation break condition
 #GHDL_SIM_OPT = --assert-level=error
-GHDL_SIM_OPT = --stop-time=500ns
+GHDL_SIM_OPT = --stop-time=10ms
  
 WAVEFORM_VIEWER = gtkwave
  
@@ -32,13 +33,15 @@ endif
 	mkdir -p simulation
 	$(GHDL_CMD) -i $(GHDL_FLAGS) --workdir=simulation --work=work $(TESTBENCHPATH) $(FILES)
 	$(GHDL_CMD) -m  $(GHDL_FLAGS) --workdir=simulation --work=work $(TESTBENCH)
-	@mv $(TESTBENCH) simulation/$(TESTBENCH)                                                                                
+	@mv $(TESTBENCH_LC) $(SIMDIR)
+	@echo "FInished compilation!"
  
 run :
-	@$(SIMDIR)/$(TESTBENCH) $(GHDL_SIM_OPT) --vcdgz=$(SIMDIR)/$(TESTBENCH).vcdgz                                      
+	@$(SIMDIR)/$(TESTBENCH_LC) $(GHDL_SIM_OPT) --vcdgz=$(SIMDIR)/$(TESTBENCH).vcdgz                                      
  
 view :
 	gunzip --stdout $(SIMDIR)/$(TESTBENCH).vcdgz | $(WAVEFORM_VIEWER) --vcd                                               
  
 clean :
 	$(GHDL_CMD) --clean --workdir=simulation
+	@rm src/*~
