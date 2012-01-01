@@ -36,59 +36,41 @@ component clkdiv
 end component;
 
 signal uartClock : std_logic;
-
--- Set by the transmitter process:
-signal startTransmission : std_logic := '0';
-signal transmissionFinished : std_logic := '1';
-signal transmissionInProgress : std_logic := '0';
+signal state : integer range 0 to 9 := 9;
 
 begin
 -- Update the seven segment content with 2 Hz frequency
 uartClockGenerator : clkdiv generic map (DIVRATIO => CLOCKDIVRATIO)
-	port map ( clkin => clk,
-				  clkout => uartClock);
--- Starts the transmission when the data is changed
-dataListener : process(clk)
+	port map ( clkin => clk, clkout => uartClock);
+
+triggerListenerProcess : process(uartClock)
+variable txTriggerReset : std_logic; -- Set to true when the TX trigger was set to zero
 begin
-	if TX_TRIGGER = '1' and transmissionFinished = '1' then
+	if TX_TRIGGER = '1' and state = 9 and txTriggerReset = '1' then
+		txTriggerReset := '0';
 		TX_FINISHED <= '0';
-		startTransmission <= '1';
-	end if;
-	-- Reset the start transmission signal
-	if startTransmission = '1' and transmissionInProgress = '1' then
-		startTransmission <= '0';
-	end if;
-	-- Set the TX finished signal if neccessary
-	if transmissionFinished <= '1' then
-		TX_FINISHED <= '1';
+		state <= 0;
+	elsif TX_TRIGGER = '0' then
+		txTriggerReset := '1';
+	else
+		if state = 9 then
+			TX_FINISHED <= '1';
+		else 
+			state <= state + 1;
+		end if;
 	end if;
 end process;
 
--- Assigns a value to the UARTTransmitter output depending on the current state
-txProcess : process(uartClock)
-variable bitCounter : integer range 0 to 8 := 0;
-begin
-	if rising_edge(uartClock) then
-		-- Start on the transmission start signal
-		if startTransmission = '1' then
-			transmissionInProgress <= '1';
-			transmissionFinished <= '0';
-			bitCounter := 0;
-			UART_OUT <= '0';
-		end if;
-		-- Transmit the bits if neccessary
-		if transmissionInProgress = '1' then
-			UART_OUT <= DATA_IN(bitCounter);
-			-- Check for counter overflow
-			if bitCounter = 7 then
-				UART_OUT <= '1';
-				transmissionFinished <= '1';
-				transmissionInProgress <= '0';
-			else
-				bitCounter := bitCounter + 1;
-			end if;
-		end if;
-	end if;
-end process;
+with state select
+UART_OUT <= '0' when 0, --start
+	    DATA_IN(0) when 1,
+	    DATA_IN(1) when 2,
+	    DATA_IN(2) when 3,
+	    DATA_IN(3) when 4,
+	    DATA_IN(4) when 5,
+	    DATA_IN(5) when 6,
+	    DATA_IN(6) when 7,
+	    DATA_IN(7) when 8,
+	    '1' when 9; --stop
 
 end Behavioral;

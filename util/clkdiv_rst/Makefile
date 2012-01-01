@@ -3,8 +3,8 @@ FILES = src/*
 VHDLEX = .vhd
  
 # testbench
-TESTBENCH=UARTTransmitter_TB
-TESTBENCH_LC=uarttransmitter_tb
+TESTBENCH=clkdiv_rst
+TESTBENCH_LC=clkdiv_rst
 TESTBENCHPATH = testbench/${TESTBENCH}$(VHDLEX)
  
 #GHDL CONFIG

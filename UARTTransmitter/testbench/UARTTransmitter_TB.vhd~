@@ -34,7 +34,8 @@ begin
  
 	trigger: process
 	begin
-		txTrigger <= '1' after 50us;
-		wait for 10 ms;
+		txTrigger <= '1' after 50 us;
+		wait until txFinished = '0';
+		wait;
 	end process;
 end;
