@@ -37,11 +37,11 @@ triggerListenerProcess : process(clk)
 variable uartResetBuffer : std_logic := '0';
 begin
 	uartInBuffer <= UART_IN;
-	if UART_IN = '0' and startReceiving = '0' and state = 8 and uartInBuffer = '1' then
+	if UART_IN = '0' and startReceiving = '0' and state = 8 and uartInBuffer = '1' then -- Data transmission start condition
 		startReceiving <= '1';
 		uartClockReset <= '1';
 		finishedReceiving <= '0';
-	else
+	else -- No data transmission starts at this point
 		if state = 8 and finishedReceiving = '0' and UART_IN = '1' then -- Start to wait for next input
 			dataNotifierBuffer <= '1';
 			finishedReceiving <= '1';
