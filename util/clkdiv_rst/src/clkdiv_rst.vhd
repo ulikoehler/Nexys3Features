@@ -28,7 +28,7 @@ begin
 	    if rst='1' and resetWasZero = '1' then -- initialize power up reset conditions
 		resetWasZero := '0';
 		clkoutBuffer <= '0';
-        	counter := 0;
+        	counter := DIVRATIO/2+1;
 	    end if;
 	    if rst = '0' then
 		resetWasZero := '1';

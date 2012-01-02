@@ -3,8 +3,8 @@ FILES = src/*
 VHDLEX = .vhd
  
 # testbench
-TESTBENCH=UARTTransmitter_TB
-TESTBENCH_LC=uarttransmitter_tb
+TESTBENCH=UARTReceiver_TB
+TESTBENCH_LC=uartreceiver_tb
 TESTBENCHPATH = testbench/${TESTBENCH}$(VHDLEX)
  
 #GHDL CONFIG
@@ -14,7 +14,7 @@ GHDL_FLAGS  = --ieee=synopsys --warn-no-vital-generic
 SIMDIR = simulation
 # Simulation break condition
 #GHDL_SIM_OPT = --assert-level=error
-GHDL_SIM_OPT = --stop-time=10ms
+GHDL_SIM_OPT = --stop-time=2ms
  
 WAVEFORM_VIEWER = gtkwave
  
