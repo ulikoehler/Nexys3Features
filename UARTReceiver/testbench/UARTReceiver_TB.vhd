@@ -25,8 +25,10 @@ begin
 	-- Clock generator
 	clk <= not clk after 5 ns;
 
-	-- UART test signal generator "01010101"
-	uartTestSignal <= '0' after 979 ns,
+	-- UART test signal generator "01010101" - Hex AA
+	uartTestSignal <= -- Start bit
+			  '0' after 979 ns, 
+                          -- Data
 			  '1' after 105 us,
 			  '0' after 209 us,
 			  '1' after 313 us,
@@ -35,5 +37,20 @@ begin
 			  '0' after 625 us,
 			  '1' after 729 us,
 			  '0' after 833 us,
-			  '1' after 937 us;
+			  --Stop bit
+			  '1' after 937 us,
+			  -- UART test signal generator "11110010"
+			  -- Start bit
+			  '0' after 1114 us,
+                          -- Data
+			  '0' after 1218 us,
+			  '0' after 1322 us,
+			  '0' after 1426 us,
+			  '0' after 1530 us,
+			  '1' after 1634 us,
+			  '1' after 1738 us,
+			  '0' after 1842 us,
+			  '1' after 1946 us,
+			  --Stop bit
+			  '1' after 2050 us;
 end;

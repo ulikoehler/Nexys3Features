@@ -13,32 +13,38 @@ end UARTReceiver;
 
 architecture Behavioral of UARTReceiver is
 component clkdiv_rst
-    generic (DIVRATIO : integer := 4);  -- Division ratio
+    generic (DIVRATIO : integer := 10417);  -- Division ratio
     port (
         clkin   : in std_logic;         -- Input clock
 	rst	: in std_logic;		  -- Clock resets
-        clkout  : out std_logic := '0'     -- Output clock
+        clkout  : out std_logic     -- Output clock
     );
 end component;
 
 signal uartClock : std_logic;
-signal state : integer range 0 to 9 := 9;
+signal state : integer range 0 to 8 := 8;
 signal dataNotifierBuffer : std_logic := '0'; 
 signal uartClockReset : std_logic := '0';
+signal startReceiving : std_logic := '0'; -- Triggers the state reset
+signal finishedReceiving : std_logic := '0'; -- Used not to trigger the data notification signal repeatedly
+signal uartInBuffer : std_logic := '1'; -- Used not to reset the clock while the signal is still low from data
 
 begin
--- Update the seven segment content with 2 Hz frequency
 uartClockGenerator : clkdiv_rst generic map (DIVRATIO => CLOCKDIVRATIO)
 	port map ( clkin => clk, rst => uartClockReset, clkout => uartClock);
 
 triggerListenerProcess : process(clk)
+variable uartResetBuffer : std_logic := '0';
 begin
-	if UART_IN = '0' and state = 9 then
-		state <= 0;
+	uartInBuffer <= UART_IN;
+	if UART_IN = '0' and startReceiving = '0' and state = 8 and uartInBuffer = '1' then
+		startReceiving <= '1';
 		uartClockReset <= '1';
+		finishedReceiving <= '0';
 	else
-		if state = 9 then -- Waiting for next input
+		if state = 8 and finishedReceiving = '0' and UART_IN = '1' then -- Start to wait for next input
 			dataNotifierBuffer <= '1';
+			finishedReceiving <= '1';
 		end if;
 	end if;
 	--Reset the data notification
@@ -46,25 +52,37 @@ begin
 		dataNotifierBuffer <= '0';
 	end if;
 	-- Reset the clock reset
+	-- This needs to be buffered in order to last long enough to have any effect (simulated)
 	if uartClockReset <= '1' then
-		uartClockReset <= '0';
-	end if;
-end process;
-
-stateIncrementProcess : process(uartClock)
-begin
-	if rising_edge(uartClock) then
-		if not(state = 9) then
-		   state <= state + 1;
+		if uartResetBuffer = '1' then
+			uartClockReset <= '0';
+			uartResetBuffer := '0';
+		else
+			uartResetBuffer := '1';
 		end if;
+	else
+		uartResetBuffer := '0';
+	end if;
+	-- Reset the start receive signal if the receiver process has received the notification
+	if startReceiving = '1' and not (state = 8) then
+		startReceiving <= '0';
 	end if;
 end process;
 
 uartReceiverProcess : process(uartClock)
 begin
-	if rising_edge(uartClock) then
-		if not (state = 0) and not (state = 9) then
-			DATA_OUT(state - 1) <= not(UART_IN);
+	if uartClock = '1' then
+		-- Read the data if the state is a data-read state (8 is no data-read state!)
+		if not (state = 8) then
+			DATA_OUT(state) <= not(UART_IN);
+		end if;
+		-- Check if we should start ot receive data
+		if state = 8 then
+			if startReceiving = '1' then
+				state <= 0; -- Reading the data is deferred by one UART clock cycle, so at the next clock cycle UART_IN == data!
+			end if;
+		else -- Increment the counter if it's a data-read state
+		   state <= state + 1;
 		end if;
 	end if;
 end process;
